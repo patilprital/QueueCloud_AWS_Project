@@ -1,0 +1,1041 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2>Admin Dashboard</h2>
+        <p class="text-muted mb-0">
+            Manage doctors, queues and appointments.
+        </p>
+    </div>
+
+</div>
+
+
+<!-- TODAY CARD -->
+<div class="row mb-4">
+
+    <div class="col-md-4 mb-3">
+
+        <div class="card shadow-sm border-primary h-100">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">
+                    TODAY
+                </h6>
+
+                <h2 class="text-primary">
+                    {{ today }}
+                </h2>
+
+                <small class="text-muted">
+                    Current appointment date
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- FLASH MESSAGES -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+
+    {% if messages %}
+
+        {% for category, message in messages %}
+
+            <div class="alert alert-{{ category }} alert-dismissible fade show">
+
+                {{ message }}
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+                </button>
+
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+{% endwith %}
+
+
+
+<!-- DOCTOR MANAGEMENT -->
+<div class="card shadow-sm mb-4">
+
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <div>
+
+                <h4 class="mb-1">
+                    Doctor Management
+                </h4>
+
+                <small class="text-muted">
+                    Add, edit, remove or restore doctors.
+                </small>
+
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-success"
+                onclick="toggleAddDoctor()"
+            >
+                + Add Doctor
+            </button>
+
+        </div>
+
+
+        <!-- ADD DOCTOR FORM -->
+
+        <div
+            id="addDoctorBox"
+            style="display: none;"
+            class="card bg-light border mb-4"
+        >
+
+            <div class="card-body">
+
+                <h5 class="mb-3">
+                    Add New Doctor
+                </h5>
+
+                <form
+                    method="post"
+                    action="{{ url_for('admin.add_doctor') }}"
+                >
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Doctor Name *
+                            </label>
+
+                            <input
+                                type="text"
+                                name="name"
+                                class="form-control"
+                                maxlength="100"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Specialization *
+                            </label>
+
+                            <input
+                                type="text"
+                                name="specialization"
+                                class="form-control"
+                                maxlength="100"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                Department *
+                            </label>
+
+                            <input
+                                type="text"
+                                name="department"
+                                class="form-control"
+                                maxlength="100"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-3 mb-3">
+
+                            <label class="form-label">
+                                Available From *
+                            </label>
+
+                            <input
+                                type="time"
+                                name="available_from"
+                                class="form-control"
+                                value="09:00"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-3 mb-3">
+
+                            <label class="form-label">
+                                Available To *
+                            </label>
+
+                            <input
+                                type="time"
+                                name="available_to"
+                                class="form-control"
+                                value="17:00"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-success"
+                    >
+                        Add Doctor
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        onclick="toggleAddDoctor()"
+                    >
+                        Cancel
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- DOCTORS TABLE -->
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>
+                            Doctor
+                        </th>
+
+                        <th>
+                            Specialization
+                        </th>
+
+                        <th>
+                            Department
+                        </th>
+
+                        <th>
+                            Availability
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for doctor in doctors %}
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                {{ doctor.name }}
+                            </strong>
+                        </td>
+
+
+                        <td>
+                            {{ doctor.specialization }}
+                        </td>
+
+
+                        <td>
+                            {{ doctor.department }}
+                        </td>
+
+
+                        <td>
+                            {{ doctor.available_from }}
+                            -
+                            {{ doctor.available_to }}
+                        </td>
+
+
+                        <td>
+
+                            {% if doctor.active %}
+
+                                <span class="badge bg-success">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    Removed
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if doctor.active %}
+
+                                <!-- EDIT BUTTON -->
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-primary mb-1"
+                                    data-doctor-id="{{ doctor.id }}"
+                                    onclick="toggleEditDoctor(this.dataset.doctorId)"
+                                >
+                                    Edit
+                                </button>
+
+
+                                <!-- REMOVE BUTTON -->
+
+                                <form
+                                    method="post"
+                                    action="{{ url_for(
+                                        'admin.remove_doctor',
+                                        doctor_id=doctor.id
+                                    ) }}"
+                                    class="d-inline"
+                                    onsubmit="return confirm('Remove this doctor from active doctors?');"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm btn-outline-danger mb-1"
+                                    >
+                                        Remove
+                                    </button>
+
+                                </form>
+
+                            {% else %}
+
+                                <!-- RESTORE BUTTON -->
+
+                                <form
+                                    method="post"
+                                    action="{{ url_for(
+                                        'admin.restore_doctor',
+                                        doctor_id=doctor.id
+                                    ) }}"
+                                    class="d-inline"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm btn-success mb-1"
+                                    >
+                                        Restore
+                                    </button>
+
+                                </form>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+
+                    <!-- EDIT DOCTOR FORM -->
+
+                    {% if doctor.active %}
+
+                    <tr>
+
+                        <td colspan="6" class="p-0">
+
+                            <div
+                                id="editDoctor{{ doctor.id }}"
+                                style="display: none;"
+                                class="card border-primary rounded-0"
+                            >
+
+                                <div class="card-body bg-light">
+
+                                    <h5 class="mb-3">
+                                        Edit Doctor -
+                                        {{ doctor.name }}
+                                    </h5>
+
+
+                                    <form
+                                        method="post"
+                                        action="{{ url_for(
+                                            'admin.edit_doctor',
+                                            doctor_id=doctor.id
+                                        ) }}"
+                                    >
+
+                                        <div class="row">
+
+                                            <div class="col-md-6 mb-3">
+
+                                                <label class="form-label">
+                                                    Doctor Name *
+                                                </label>
+
+                                                <input
+                                                    type="text"
+                                                    name="name"
+                                                    class="form-control"
+                                                    maxlength="100"
+                                                    value="{{ doctor.name }}"
+                                                    required
+                                                >
+
+                                            </div>
+
+
+                                            <div class="col-md-6 mb-3">
+
+                                                <label class="form-label">
+                                                    Specialization *
+                                                </label>
+
+                                                <input
+                                                    type="text"
+                                                    name="specialization"
+                                                    class="form-control"
+                                                    maxlength="100"
+                                                    value="{{ doctor.specialization }}"
+                                                    required
+                                                >
+
+                                            </div>
+
+
+                                            <div class="col-md-6 mb-3">
+
+                                                <label class="form-label">
+                                                    Department *
+                                                </label>
+
+                                                <input
+                                                    type="text"
+                                                    name="department"
+                                                    class="form-control"
+                                                    maxlength="100"
+                                                    value="{{ doctor.department }}"
+                                                    required
+                                                >
+
+                                            </div>
+
+
+                                            <div class="col-md-3 mb-3">
+
+                                                <label class="form-label">
+                                                    Available From *
+                                                </label>
+
+                                                <input
+                                                    type="time"
+                                                    name="available_from"
+                                                    class="form-control"
+                                                    value="{{ doctor.available_from }}"
+                                                    required
+                                                >
+
+                                            </div>
+
+
+                                            <div class="col-md-3 mb-3">
+
+                                                <label class="form-label">
+                                                    Available To *
+                                                </label>
+
+                                                <input
+                                                    type="time"
+                                                    name="available_to"
+                                                    class="form-control"
+                                                    value="{{ doctor.available_to }}"
+                                                    required
+                                                >
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-primary"
+                                        >
+                                            Save Changes
+                                        </button>
+
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-secondary"
+                                            onclick="toggleEditDoctor('{{ doctor.id }}')"
+                                        >
+                                            Cancel
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endif %}
+
+
+                    {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="text-center text-muted py-4"
+                        >
+                            No doctors found.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- DOCTOR-WISE QUEUES -->
+
+<h4 class="mb-3">
+    Doctor-wise Queues
+</h4>
+
+<div class="row">
+
+    {% for item in doctor_queues %}
+
+    <div class="col-md-6 col-lg-4 mb-4">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-body">
+
+                <!-- DOCTOR NAME -->
+
+                <div class="d-flex justify-content-between align-items-start">
+
+                    <div>
+
+                        <h5 class="mb-1">
+                            {{ item.doctor.name }}
+                        </h5>
+
+                        <small class="text-muted">
+                            {{ item.doctor.specialization }}
+                        </small>
+
+                        <br>
+
+                        <small class="text-muted">
+                            {{ item.doctor.department }}
+                        </small>
+
+                    </div>
+
+
+                    {% if item.doctor.active %}
+
+                        <span class="badge bg-success">
+                            Active
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-secondary">
+                            Removed
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <hr>
+
+
+                <!-- CURRENT TOKEN -->
+
+                <div class="text-center mb-3">
+
+                    <small class="text-muted">
+                        CURRENT TOKEN
+                    </small>
+
+                    <h1 class="text-success">
+
+                        {% if item.current %}
+
+                            {{ item.current.token }}
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+                    </h1>
+
+                    {% if item.current %}
+
+                        <small class="text-muted">
+                            Currently serving
+                        </small>
+
+                    {% else %}
+
+                        <small class="text-muted">
+                            No patient being served
+                        </small>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- WAITING COUNT -->
+
+                <div class="text-center mb-3">
+
+                    <small class="text-muted">
+                        WAITING PATIENTS
+                    </small>
+
+                    <h2 class="text-warning">
+                        {{ item.waiting }}
+                    </h2>
+
+                </div>
+
+
+                <!-- CALL NEXT -->
+
+                {% if item.doctor.active %}
+
+                <form
+                    method="post"
+                    action="{{ url_for(
+                        'admin.next_patient',
+                        doctor_id=item.doctor.id
+                    ) }}"
+                    onsubmit="return confirm('Call the next patient for {{ item.doctor.name }}?');"
+                >
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100"
+                    >
+                        Call Next Patient
+                    </button>
+
+                </form>
+
+                {% else %}
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary w-100"
+                        disabled
+                    >
+                        Doctor Removed
+                    </button>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% else %}
+
+    <div class="col-12">
+
+        <div class="alert alert-info">
+            No doctors available.
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+
+
+<!-- APPOINTMENTS -->
+
+<div class="card shadow-sm mt-2">
+
+    <div class="card-body">
+
+        <h4 class="mb-3">
+            All Appointments
+        </h4>
+
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>
+                            Patient
+                        </th>
+
+                        <th>
+                            Doctor
+                        </th>
+
+                        <th>
+                            Date
+                        </th>
+
+                        <th>
+                            Token
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for a in appointments %}
+
+                    <tr>
+
+                        <!-- PATIENT -->
+
+                        <td>
+
+                            {% if a.patient %}
+
+                                <strong>
+                                    {{ a.patient.name }}
+                                </strong>
+
+                                <br>
+
+                                <small class="text-muted">
+                                    {{ a.patient.email }}
+                                </small>
+
+                            {% else %}
+
+                                -
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- DOCTOR -->
+
+                        <td>
+
+                            {% if a.doctor %}
+
+                                {{ a.doctor.name }}
+
+                                <br>
+
+                                <small class="text-muted">
+                                    {{ a.doctor.specialization }}
+                                </small>
+
+                            {% else %}
+
+                                -
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- DATE -->
+
+                        <td>
+                            {{ a.appointment_date }}
+                        </td>
+
+
+                        <!-- TOKEN -->
+
+                        <td>
+
+                            <span class="badge bg-primary fs-6">
+                                {{ a.token }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- STATUS -->
+
+                        <td>
+
+                            {% if a.status == "Waiting" %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Waiting
+                                </span>
+
+                            {% elif a.status == "Serving" %}
+
+                                <span class="badge bg-success">
+                                    Serving
+                                </span>
+
+                            {% elif a.status == "Completed" %}
+
+                                <span class="badge bg-secondary">
+                                    Completed
+                                </span>
+
+                            {% elif a.status == "Cancelled" %}
+
+                                <span class="badge bg-danger">
+                                    Cancelled
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ a.status }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- ACTION -->
+
+                        <td>
+
+                            {% if a.status == "Waiting" %}
+
+                                <form
+                                    method="post"
+                                    action="{{ url_for(
+                                        'admin.update_status',
+                                        appointment_id=a.id,
+                                        status='Serving'
+                                    ) }}"
+                                    class="d-inline"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm btn-success mb-1"
+                                    >
+                                        Serve
+                                    </button>
+
+                                </form>
+
+
+                            {% elif a.status == "Serving" %}
+
+                                <form
+                                    method="post"
+                                    action="{{ url_for(
+                                        'admin.update_status',
+                                        appointment_id=a.id,
+                                        status='Completed'
+                                    ) }}"
+                                    class="d-inline"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm btn-secondary mb-1"
+                                    >
+                                        Complete
+                                    </button>
+
+                                </form>
+
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    -
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+
+                    {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="text-center text-muted py-4"
+                        >
+                            No appointments found.
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- JAVASCRIPT -->
+
+<script>
+
+function toggleEditDoctor(doctorId) {
+
+    const editBox = document.getElementById(
+        "editDoctor" + doctorId
+    );
+
+    if (!editBox) {
+        return;
+    }
+
+    if (
+        editBox.style.display === "none"
+        || editBox.style.display === ""
+    ) {
+
+        editBox.style.display = "block";
+
+    } else {
+
+        editBox.style.display = "none";
+
+    }
+}
+
+
+function toggleAddDoctor() {
+
+    const addBox = document.getElementById(
+        "addDoctorBox"
+    );
+
+    if (!addBox) {
+        return;
+    }
+
+    if (
+        addBox.style.display === "none"
+        || addBox.style.display === ""
+    ) {
+
+        addBox.style.display = "block";
+
+    } else {
+
+        addBox.style.display = "none";
+
+    }
+}
+
+</script>
+
+
+{% endblock %}

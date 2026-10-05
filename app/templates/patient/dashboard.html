@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Patient Dashboard</h2>
+
+    <a href="{{ url_for('patient.book') }}" class="btn btn-primary">
+        Book Appointment
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <strong>Queue Status:</strong>
+    This page automatically updates every 5 seconds.
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <h5 class="mb-3">My Appointments</h5>
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Doctor</th>
+                        <th>Date</th>
+                        <th>My Token</th>
+                        <th>Now Serving</th>
+                        <th>Patients Ahead</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for a in appointments %}
+
+                    <tr>
+
+                        <!-- Doctor -->
+                        <td>
+                            <strong>
+                                {{ a.doctor.name }}
+                            </strong>
+
+                            <br>
+
+                            <small class="text-muted">
+                                {{ a.doctor.specialization }}
+                            </small>
+                        </td>
+
+                        <!-- Date -->
+                        <td>
+                            {{ a.appointment_date }}
+                        </td>
+
+                        <!-- My Token -->
+                        <td>
+                            <span class="badge bg-primary fs-5">
+                                {{ a.token }}
+                            </span>
+                        </td>
+
+                        <!-- Now Serving -->
+                        <td>
+
+                            {% if serving_tokens[a.id] is not none %}
+
+                                <span class="badge bg-success fs-5">
+                                    {{ serving_tokens[a.id] }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    Not Started
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <!-- Patients Ahead -->
+                        <td>
+
+                            {% if a.status == "Waiting" %}
+
+                                {% if queue_positions[a.id] is not none %}
+
+                                    <span class="fw-bold">
+                                        {{ queue_positions[a.id] - 1 }}
+                                    </span>
+
+                                    patient(s)
+
+                                {% else %}
+
+                                    -
+
+                                {% endif %}
+
+                            {% elif a.status == "Serving" %}
+
+                                <span class="text-success fw-bold">
+                                    0
+                                </span>
+
+                            {% else %}
+
+                                -
+
+                            {% endif %}
+
+                        </td>
+
+                        <!-- Status -->
+                        <td>
+
+                            {% if a.status == "Waiting" %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Waiting
+                                </span>
+
+                            {% elif a.status == "Serving" %}
+
+                                <span class="badge bg-success">
+                                    Serving
+                                </span>
+
+                            {% elif a.status == "Completed" %}
+
+                                <span class="badge bg-secondary">
+                                    Completed
+                                </span>
+
+                            {% elif a.status == "Cancelled" %}
+
+                                <span class="badge bg-danger">
+                                    Cancelled
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ a.status }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <!-- Cancel -->
+                        <td>
+
+                            {% if a.status == "Waiting" %}
+
+                                <form
+                                    method="post"
+                                    action="{{ url_for(
+                                        'patient.cancel',
+                                        appointment_id=a.id
+                                    ) }}"
+                                    onsubmit="return confirm('Cancel this appointment?');"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm btn-outline-danger"
+                                    >
+                                        Cancel
+                                    </button>
+
+                                </form>
+
+                            {% else %}
+
+                                -
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td colspan="7" class="text-center text-muted py-4">
+
+                            No appointments found.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Queue explanation -->
+
+<div class="row mt-4">
+
+    <div class="col-md-4">
+
+        <div class="card shadow-sm border-primary">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">
+                    My Token
+                </h6>
+
+                <h2 class="text-primary">
+                    {% if appointments %}
+                        {{ appointments[0].token }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </h2>
+
+                <small>
+                    Your queue number
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-md-4">
+
+        <div class="card shadow-sm border-success">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">
+                    Now Serving
+                </h6>
+
+                <h2 class="text-success">
+
+                    {% if appointments and serving_tokens[appointments[0].id] is not none %}
+
+                        {{ serving_tokens[appointments[0].id] }}
+
+                    {% else %}
+
+                        -
+
+                    {% endif %}
+
+                </h2>
+
+                <small>
+                    Current token being served
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-md-4">
+
+        <div class="card shadow-sm border-warning">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">
+                    Patients Ahead
+                </h6>
+
+                <h2 class="text-warning">
+
+                    {% if appointments and appointments[0].status == "Waiting" %}
+
+                        {{ queue_positions[appointments[0].id] - 1 }}
+
+                    {% else %}
+
+                        0
+
+                    {% endif %}
+
+                </h2>
+
+                <small>
+                    Patients before your token
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Auto refresh -->
+
+<script>
+
+    setInterval(function() {
+
+        window.location.reload();
+
+    }, 5000);
+
+</script>
+
+{% endblock %}

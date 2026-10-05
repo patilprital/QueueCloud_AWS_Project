@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero p-5 rounded-4">
+    <h1>Cloud-Based Appointment & Queue Management</h1>
+    <p class="lead">Book appointments, receive tokens, and track your queue online.</p>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Get Started</a>
+</div>
+<div class="row mt-4 g-3">
+    <div class="col-md-4"><div class="card p-3 h-100"><h5>Online Booking</h5><p>Choose a doctor, date and time slot.</p></div></div>
+    <div class="col-md-4"><div class="card p-3 h-100"><h5>Token Management</h5><p>Receive an automatic appointment token.</p></div></div>
+    <div class="col-md-4"><div class="card p-3 h-100"><h5>Queue Tracking</h5><p>Check your current appointment status.</p></div></div>
+</div>
+{% endblock %}
